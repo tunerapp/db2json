@@ -1,0 +1,34 @@
+#+TITLE: db2json README
+
+* db2json
+
+db2json exports from Tunerapp MySQL to a JSON flat file format
+which is meant to be commited into the stations master repository.
+
+** Installation from source
+
+#+BEGIN_SRC sh
+$ git clone https://github.com/tunerapp/db2json
+$ cd db2json
+$ go install 
+#+END_SRC
+
+** Running
+
+#+BEGIN_SRC sh
+$ db2json --database-url mysql://....
+          --output-dir /tmp/stations
+#+END_SRC
+
+** License
+
+db2json is licensed under GPL3.0. See LICENSE.
+
+** Credits
+
+The following libraries are used:
+
+| Name                           | License     |
+|--------------------------------|-------------|
+| github.com/mkideal/cli         | Expat (MIT) |
+| github.com/go-sql-driver/mysql | MPL 2.0     |
