@@ -20,9 +20,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/mkideal/cli"
@@ -32,6 +36,21 @@ type argT struct {
 	cli.Helper
 	DatabaseURL string `cli:"*d,database-url" usage:"connection string to mysql db, format username:password@protocol(address)/dbname?param=value"`
 	OutputDir   string `cli:"*o,output-dir" usage:"existing directory where the JSON files will be emitted"`
+}
+
+type Station struct {
+	UUID        string    `json:"StationUUID"`
+	Name        string    `json:"name"`
+	URL         string    `json:"url"`
+	Homepage    string    `json:"homepage"`
+	Favicon     string    `json:"favicon"`
+	Creation    time.Time `json:"creation"`
+	Country     string    `json:"country"`
+	CountryCode string    `json:"country_code"`
+	Language    string    `json:"language"`
+	Tags        []string  `json:"tags"`
+	Subcountry  string    `json:"state"`
+	Bitrate     int       `json:"bitrate"`
 }
 
 func main() {
@@ -59,6 +78,29 @@ func runExport(dbURL, outputDir string) error {
 	}
 	defer db.Close()
 	fmt.Println("Database URL : ", dbURL)
+
+	stmt := "SELECT StationUUID, Name FROM Station"
+	rows, err := db.Query(stmt)
+	if err != nil {
+		log.Fatalf("Cannot query database: %v", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var entry Station
+		// TODO Export all columns
+		if err := rows.Scan(&entry.UUID, &entry.Name); err != nil {
+			log.Fatalf("Cannot scan row: %v", err)
+		}
+		log.Printf("id %s\n", entry.UUID)
+		raw, err := json.MarshalIndent(entry, "", "    ")
+		if err != nil {
+			log.Fatalf("Cannot marshal row: %v", err)
+		}
+		fpath := filepath.Join(outputDir, fmt.Sprintf("%s.json", entry.UUID))
+		if err := ioutil.WriteFile(fpath, raw, 0644); err != nil {
+			log.Fatalf("Cannot write file %s: %v", fpath, err)
+		}
+	}
 
 	return nil
 }
