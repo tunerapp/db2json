@@ -26,7 +26,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/mkideal/cli"
@@ -39,18 +38,18 @@ type argT struct {
 }
 
 type Station struct {
-	UUID        string    `json:"StationUUID"`
-	Name        string    `json:"name"`
-	URL         string    `json:"url"`
-	Homepage    string    `json:"homepage"`
-	Favicon     string    `json:"favicon"`
-	Creation    time.Time `json:"creation"`
-	Country     string    `json:"country"`
-	CountryCode string    `json:"country_code"`
-	Language    string    `json:"language"`
-	Tags        []string  `json:"tags"`
-	Subcountry  string    `json:"state"`
-	Bitrate     int       `json:"bitrate"`
+	UUID        string `json:"uuid"`
+	Name        string `json:"name"`
+	URL         string `json:"url"`
+	Homepage    string `json:"homepage"`
+	Favicon     string `json:"favicon"`
+	Creation    string `json:"creation"`
+	Country     string `json:"country"`
+	CountryCode string `json:"country_code"`
+	Language    string `json:"language"`
+	Tags        string `json:"tags"`
+	Subcountry  string `json:"state"`
+	Bitrate     int    `json:"bitrate"`
 }
 
 func main() {
@@ -79,7 +78,10 @@ func runExport(dbURL, outputDir string) error {
 	defer db.Close()
 	fmt.Println("Database URL : ", dbURL)
 
-	stmt := "SELECT StationUUID, Name FROM Station"
+	stmt := `SELECT StationUuid, Name, Url, Homepage, 
+	Favicon, Creation, Country, 
+	CountryCode, Language, Tags,
+	Subcountry, Bitrate FROM Station`
 	rows, err := db.Query(stmt)
 	if err != nil {
 		log.Fatalf("Cannot query database: %v", err)
@@ -88,7 +90,18 @@ func runExport(dbURL, outputDir string) error {
 	for rows.Next() {
 		var entry Station
 		// TODO Export all columns
-		if err := rows.Scan(&entry.UUID, &entry.Name); err != nil {
+		if err := rows.Scan(&entry.UUID,
+			&entry.Name,
+			&entry.URL,
+			&entry.Homepage,
+			&entry.Favicon,
+			&entry.Creation,
+			&entry.Country,
+			&entry.CountryCode,
+			&entry.Language,
+			&entry.Tags,
+			&entry.Subcountry,
+			&entry.Bitrate); err != nil {
 			log.Fatalf("Cannot scan row: %v", err)
 		}
 		log.Printf("id %s\n", entry.UUID)
